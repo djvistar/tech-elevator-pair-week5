@@ -62,19 +62,68 @@ WHERE name = 'Smallville';
 /* No, because Smallville is being used as a foreign key in another table */
 
 -- 6. Return the US captial to Washington.
+SELECT id FROM city WHERE name = 'Washington'; --id 3813
+
+BEGIN TRANSACTION;
+UPDATE country
+SET capital = 3813
+WHERE code = 'USA'
+
+SELECT capital FROM country WHERE code = 'USA';
+COMMIT;
 
 -- 7. Delete Smallville, Kansas from the city table. (Did it succeed? Why?)
+BEGIN TRANSACTION;
+DELETE FROM city
+WHERE name = 'Smallville';
+
+COMMIT;
+-- Because se deleted Smallville as a foreign key from the country table
+
 
 -- 8. Reverse the "is the official language" setting for all languages where the
 -- country's year of independence is within the range of 1800 and 1972 
 -- (exclusive). 
 -- (590 rows affected)
+SELECT name FROM country WHERE indepyear >= 1800 AND indepyear <=1972 
+
+BEGIN TRANSACTION;
+UPDATE countrylanguage 
+SET isofficial = not isofficial
+FROM country
+WHERE country.code = countrylanguage.countrycode AND indepyear >= 1800 AND indepyear <=1972;
+
+SELECT isofficial from countrylanguage where countrycode = 'AFG'
+ 
+COMMIT;
+ROLLBACK;
 
 -- 9. Convert population so it is expressed in 1,000s for all cities. (Round to
 -- the nearest integer value greater than 0.)
 -- (4079 rows affected)
 
+BEGIN TRANSACTION;
+UPDATE city 
+SET population = ROUND(population/1000)
+
+SELECT population
+from city
+
+COMMIT;
+
+
 -- 10. Assuming a country's surfacearea is expressed in square miles, convert it to 
 -- square meters for all countries where French is spoken by more than 20% of the 
 -- population.
 -- (7 rows affected)
+SELECT surfacearea FROM country 
+JOIN countrylanguage ON countrylanguage.countrycode = country.code
+WHERE language = 'French' AND percentage > 20
+
+BEGIN TRANSACTION;
+UPDATE country 
+SET surfacearea = surfacearea * 2589988
+FROM countrylanguage
+WHERE countrylanguage.countrycode = country.code AND language = 'French' AND percentage >20
+
+COMMIT;
